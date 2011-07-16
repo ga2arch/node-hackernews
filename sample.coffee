@@ -1,4 +1,4 @@
-Hn = require './hn'
+Hackernews = require './hackernews'
 
 hn = new Hackernews()
 hn.scrape hn.news, (docs) ->

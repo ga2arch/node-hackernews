@@ -1,5 +1,5 @@
 (function() {
-  var Hn, events, jsdom;
+  var Hackernews, events, jsdom;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -10,15 +10,15 @@
   };
   events = require('events');
   jsdom = require('jsdom');
-  Hn = (function() {
-    __extends(Hn, events.EventEmitter);
-    function Hn() {
+  Hackernews = (function() {
+    __extends(Hackernews, events.EventEmitter);
+    function Hackernews() {
       this.base = 'http://news.ycombinator.com';
       this.news = this.base + '/news';
       this.newest = this.base + '/newest';
       this.ask = this.base + '/ask';
     }
-    Hn.prototype.scrape = function(url, callback) {
+    Hackernews.prototype.scrape = function(url, callback) {
       var self;
       self = this;
       return jsdom.env(url, ['http://code.jquery.com/jquery-1.5.min.js'], function(err, win) {
@@ -56,7 +56,7 @@
         }
       });
     };
-    return Hn;
+    return Hackernews;
   })();
-  module.exports = Hn;
+  module.exports = Hackernews;
 }).call(this);

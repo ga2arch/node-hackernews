@@ -33,4 +33,4 @@ class Hackernews extends events.EventEmitter
 			if callback?
 				callback docs
 				
-module.exports = Hn
+module.exports = Hackernews
