@@ -27,7 +27,7 @@
         docs = [];
         i = 0;
         $('td.title:not(:last) > a').each(function() {
-          var title;
+          var title, tmp;
           title = $(this).text();
           url = $(this).attr('href');
           docs[i] = {
@@ -40,20 +40,33 @@
             raw = $(this).text();
             data = raw.split(' ')[0];
             if (raw.indexOf('points') !== -1) {
-              docs[i].info.points = data;
+              return docs[i].info.points = data;
             } else if (raw.indexOf('comments') !== -1) {
               docs[i].itemId = $(this).attr('href').split('=')[1];
-              docs[i].info.comments = data;
-            } else {
-              docs[i].info.postedBy = data;
+              return docs[i].info.comments = data;
+            } else if (raw.indexOf('discuss') === -1) {
+              return docs[i].info.postedBy = data;
             }
-            return self.emit('doc', docs[i]);
           });
+          tmp = $('td.subtext:eq(' + i + ')').text();
+          console.log(docs[i].info.postedBy);
+          docs[i].info.postedAgo = tmp.split(docs[i].info.postedBy + ' ')[1].split('ago')[0] + 'ago';
+          self.emit('doc', docs[i]);
           return i++;
         });
         if (callback != null) {
           return callback(docs);
         }
+      });
+    };
+    Hackernews.prototype.scrapeItem = function(itemId) {
+      var self, url;
+      self = this;
+      url = this.base + '/item?id=' + itemId;
+      return jsdom.env(url, ['http://code.jquery.com/jquery-1.5.min.js'], function(err, win) {
+        var $;
+        $ = win.$;
+        return $('td + table > ');
       });
     };
     return Hackernews;

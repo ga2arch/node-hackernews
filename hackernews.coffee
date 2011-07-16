@@ -26,11 +26,23 @@ class Hackernews extends events.EventEmitter
 					else if raw.indexOf('comments') isnt -1
 						docs[i].itemId = $(@).attr('href').split('=')[1]
 						docs[i].info.comments = data
-					else 
+					else if raw.indexOf('discuss') is -1
 						docs[i].info.postedBy = data
-					self.emit 'doc', docs[i]
+						
+				tmp = $('td.subtext:eq('+i+')').text()
+				console.log docs[i].info.postedBy
+				docs[i].info.postedAgo = tmp.split(docs[i].info.postedBy+' ')[1].split('ago')[0]+'ago'
+				self.emit 'doc', docs[i]
 				i++
+				
 			if callback?
 				callback docs
+		
+	scrapeItem: (itemId) ->
+		self = @
+		url = @base+'/item?id='+itemId
+		jsdom.env url, [ 'http://code.jquery.com/jquery-1.5.min.js' ], (err, win) ->
+			$ = win.$
+			$('td + table > ')
 				
 module.exports = Hackernews
