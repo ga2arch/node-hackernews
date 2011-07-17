@@ -64,12 +64,11 @@
         }
       });
     };
-    Hackernews.prototype.scrapeItem = function(itemId) {
-      var html, self, url;
+    Hackernews.prototype.scrapeItem = function(itemId, callback) {
+      var self, url;
       self = this;
       url = this.base + '/item?id=' + itemId;
-      html = fs.readFileSync('data.html', 'utf-8');
-      return jsdom.env(html, ['jquery-1.5.min.js'], function(err, win) {
+      return jsdom.env(url, ['jquery-1.5.min.js'], function(err, win) {
         var $, comments, i;
         $ = win.$;
         comments = [];
@@ -106,12 +105,16 @@
               }
             }
             eval(t + '.push(comment)');
+            self.emit('reply', comment);
           } else {
             comments[i] = comment;
+            self.emit('comment', comment);
           }
           return i++;
         });
-        return console.log(comments[0].replies[1].replies[1].replies[0]);
+        if (callback != null) {
+          return callback(comments);
+        }
       });
     };
     return Hackernews;

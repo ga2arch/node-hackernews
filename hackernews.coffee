@@ -42,11 +42,10 @@ class Hackernews extends events.EventEmitter
 			if callback?
 				callback docs
 		
-	scrapeItem: (itemId) ->
+	scrapeItem: (itemId, callback) ->
 		self = @
 		url = @base+'/item?id='+itemId
-		html = fs.readFileSync 'data.html', 'utf-8'
-		jsdom.env html, [ 'jquery-1.5.min.js' ], (err, win) ->
+		jsdom.env url, [ 'jquery-1.5.min.js' ], (err, win) ->
 			$ = win.$
 			comments = []
 			i = 0
@@ -82,10 +81,13 @@ class Hackernews extends events.EventEmitter
 						else
 							t = '_.last('+t+'.replies)'
 					eval t+'.push(comment)'
+					self.emit 'reply', comment
 				else 
 					comments[i] = comment
-									
+					self.emit 'comment', comment
 				i++
 			
+			if callback?
+				callback comments
 			
 module.exports = Hackernews
