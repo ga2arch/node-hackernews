@@ -49,7 +49,6 @@
             }
           });
           tmp = $('td.subtext:eq(' + i + ')').text();
-          console.log(docs[i].info.postedBy);
           docs[i].info.postedAgo = tmp.split(docs[i].info.postedBy + ' ')[1].split('ago')[0] + 'ago';
           self.emit('doc', docs[i]);
           return i++;
@@ -64,9 +63,32 @@
       self = this;
       url = this.base + '/item?id=' + itemId;
       return jsdom.env(url, ['http://code.jquery.com/jquery-1.5.min.js'], function(err, win) {
-        var $;
+        var $, comments, i;
         $ = win.$;
-        return $('td + table > ');
+        comments = [];
+        i = 0;
+        $('td.default').each(function() {
+          var b, tmp;
+          comments[i] = {};
+          comments[i].pos = $(this).parent().get(0).childNodes[0].childNodes[0].attributes.getNamedItem('width').nodeValue;
+          b = i + 1;
+          $('span.comhead:eq(' + b + ') > a').each(function() {
+            var text;
+            text = $(this).text();
+            if (text.indexOf('link') === -1) {
+              return comments[i].postedBy = text;
+            } else {
+              return comments[i].itemId = $(this).attr('href').split('=')[1];
+            }
+          });
+          tmp = $('span.comhead:eq(' + b + ')').text();
+          comments[i].postedAgo = tmp.split(comments[i].postedBy + ' ')[1].split('ago')[0] + 'ago';
+          $('span.comment:eq(' + i + ') > font').each(function() {
+            return comments[i].text = $(this).text();
+          });
+          return i++;
+        });
+        return console.log(comments);
       });
     };
     return Hackernews;

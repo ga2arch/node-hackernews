@@ -30,7 +30,6 @@ class Hackernews extends events.EventEmitter
 						docs[i].info.postedBy = data
 						
 				tmp = $('td.subtext:eq('+i+')').text()
-				console.log docs[i].info.postedBy
 				docs[i].info.postedAgo = tmp.split(docs[i].info.postedBy+' ')[1].split('ago')[0]+'ago'
 				self.emit 'doc', docs[i]
 				i++
@@ -43,6 +42,25 @@ class Hackernews extends events.EventEmitter
 		url = @base+'/item?id='+itemId
 		jsdom.env url, [ 'http://code.jquery.com/jquery-1.5.min.js' ], (err, win) ->
 			$ = win.$
-			$('td + table > ')
+			comments = []
+			i = 0
+			$('td.default').each ->
+				comments[i] = {}
+				comments[i].pos = $(@).parent().get(0).childNodes[0].childNodes[0].attributes.getNamedItem('width').nodeValue
+				b = i+1
+				$('span.comhead:eq('+b+') > a').each ->
+					text = $(@).text()
+					if text.indexOf('link') is -1
+						comments[i].postedBy = text
+					else
+						comments[i].itemId = $(@).attr('href').split('=')[1]
 				
+				tmp = $('span.comhead:eq('+b+')').text()
+				comments[i].postedAgo = tmp.split(comments[i].postedBy+' ')[1].split('ago')[0]+'ago'
+				
+				$('span.comment:eq('+i+') > font').each ->
+					comments[i].text = $(@).text()
+				i++
+			console.log comments
+			
 module.exports = Hackernews
