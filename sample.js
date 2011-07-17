@@ -2,7 +2,5 @@
   var Hackernews, hn;
   Hackernews = require('./hackernews');
   hn = new Hackernews();
-  hn.scrape(hn.news, function(docs) {
-    return hn.scrapeItem(docs[1].itemId);
-  });
+  hn.scrapeItem('2772387');
 }).call(this);

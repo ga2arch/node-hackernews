@@ -1,5 +1,8 @@
 events = require 'events'
 jsdom = require 'jsdom'
+request = require 'request'
+_ = require 'underscore'
+fs = require 'fs'
 
 class Hackernews extends events.EventEmitter
 	constructor: ->
@@ -30,7 +33,9 @@ class Hackernews extends events.EventEmitter
 						docs[i].info.postedBy = data
 						
 				tmp = $('td.subtext:eq('+i+')').text()
-				docs[i].info.postedAgo = tmp.split(docs[i].info.postedBy+' ')[1].split('ago')[0]+'ago'
+				if docs[i].info.postedBy?
+					docs[i].info.postedAgo = tmp.split(docs[i].info.postedBy+' ')[1].split('ago')[0]+'ago'
+				docs[i].info.postedAgo = tmp
 				self.emit 'doc', docs[i]
 				i++
 				
@@ -40,27 +45,47 @@ class Hackernews extends events.EventEmitter
 	scrapeItem: (itemId) ->
 		self = @
 		url = @base+'/item?id='+itemId
-		jsdom.env url, [ 'http://code.jquery.com/jquery-1.5.min.js' ], (err, win) ->
+		html = fs.readFileSync 'data.html', 'utf-8'
+		jsdom.env html, [ 'jquery-1.5.min.js' ], (err, win) ->
 			$ = win.$
 			comments = []
 			i = 0
 			$('td.default').each ->
-				comments[i] = {}
-				comments[i].pos = $(@).parent().get(0).childNodes[0].childNodes[0].attributes.getNamedItem('width').nodeValue
+				comment = {}
+				comment.replies = []
+
+				
+				pos = parseInt $(@).parent().get(0).childNodes[0].childNodes[0].attributes.getNamedItem('width').nodeValue
+				pos = pos / 40
+									
+				comment.pos = pos 
+				
 				b = i+1
 				$('span.comhead:eq('+b+') > a').each ->
 					text = $(@).text()
 					if text.indexOf('link') is -1
-						comments[i].postedBy = text
+						comment.postedBy = text
 					else
-						comments[i].itemId = $(@).attr('href').split('=')[1]
+						comment.itemId = $(@).attr('href').split('=')[1]
 				
 				tmp = $('span.comhead:eq('+b+')').text()
-				comments[i].postedAgo = tmp.split(comments[i].postedBy+' ')[1].split('ago')[0]+'ago'
+				comment.postedAgo = tmp.split(comment.postedBy+' ')[1].split('ago')[0]+'ago'
 				
 				$('span.comment:eq('+i+') > font').each ->
-					comments[i].text = $(@).text()
+					comment.text = $(@).text()
+				
+				t = '_.last(comments)'
+				if pos > 0
+					for n in [1..pos]
+						if n is pos
+							t = t+'.replies'
+						else
+							t = '_.last('+t+'.replies)'
+					eval t+'.push(comment)'
+				else 
+					comments[i] = comment
+									
 				i++
-			console.log comments
+			
 			
 module.exports = Hackernews
