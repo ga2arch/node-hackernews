@@ -1,7 +1,6 @@
 Hackernews = require './hackernews'
 
 hn = new Hackernews()
-hn.scrapeItem '2772387'
+hn.scrapeItem '2772718', (comments) ->
+	console.log comments[7]
 
-hn.on 'comment', (data) ->
-	console.log data

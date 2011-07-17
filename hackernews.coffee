@@ -45,49 +45,49 @@ class Hackernews extends events.EventEmitter
 	scrapeItem: (itemId, callback) ->
 		self = @
 		url = @base+'/item?id='+itemId
-		jsdom.env url, [ 'jquery-1.5.min.js' ], (err, win) ->
-			$ = win.$
-			comments = []
-			i = 0
-			$('td.default').each ->
-				comment = {}
-				comment.replies = []
-
-				
-				pos = parseInt $(@).parent().get(0).childNodes[0].childNodes[0].attributes.getNamedItem('width').nodeValue
-				pos = pos / 40
+		request uri: url, (err, res, body) ->
+			jsdom.env body, [ 'jquery-1.5.min.js' ], (err, win) ->
+				$ = win.$
+				comments = []
+				i = 0
+				$('td.default').each ->
+					comment = {}
+					comment.replies = []
+					
+					pos = parseInt $(@).parent().get(0).childNodes[0].childNodes[0].attributes.getNamedItem('width').nodeValue
+					pos = pos / 40
 									
-				comment.pos = pos 
+					comment.pos = pos 
 				
-				b = i+1
-				$('span.comhead:eq('+b+') > a').each ->
-					text = $(@).text()
-					if text.indexOf('link') is -1
-						comment.postedBy = text
-					else
-						comment.itemId = $(@).attr('href').split('=')[1]
-				
-				tmp = $('span.comhead:eq('+b+')').text()
-				comment.postedAgo = tmp.split(comment.postedBy+' ')[1].split('ago')[0]+'ago'
-				
-				$('span.comment:eq('+i+') > font').each ->
-					comment.text = $(@).text()
-				
-				t = '_.last(comments)'
-				if pos > 0
-					for n in [1..pos]
-						if n is pos
-							t = t+'.replies'
+					b = i+1
+					$('span.comhead:eq('+b+') > a').each ->
+						text = $(@).text()
+						if text.indexOf('link') is -1
+							comment.postedBy = text
 						else
-							t = '_.last('+t+'.replies)'
-					eval t+'.push(comment)'
-					self.emit 'reply', comment
-				else 
-					comments[i] = comment
-					self.emit 'comment', comment
-				i++
+							comment.itemId = $(@).attr('href').split('=')[1]
+				
+					tmp = $('span.comhead:eq('+b+')').text()
+					comment.postedAgo = tmp.split(comment.postedBy+' ')[1].split('ago')[0]+'ago'
+				
+					$('span.comment:eq('+i+') > *').each ->
+						comment.text = $(@).text()
+				
+					t = '_.last(comments)'
+					if pos > 0
+						for n in [1..pos]
+							if n is pos
+								t = t+'.replies'
+							else
+								t = '_.last('+t+'.replies)'
+						eval t+'.push(comment)'
+						self.emit 'reply', comment
+					else 
+						comments.push comment
+						self.emit 'comment', comment
+					i++
 			
-			if callback?
-				callback comments
+				if callback?
+					callback comments
 			
 module.exports = Hackernews

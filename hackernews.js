@@ -68,53 +68,57 @@
       var self, url;
       self = this;
       url = this.base + '/item?id=' + itemId;
-      return jsdom.env(url, ['jquery-1.5.min.js'], function(err, win) {
-        var $, comments, i;
-        $ = win.$;
-        comments = [];
-        i = 0;
-        $('td.default').each(function() {
-          var b, comment, n, pos, t, tmp;
-          comment = {};
-          comment.replies = [];
-          pos = parseInt($(this).parent().get(0).childNodes[0].childNodes[0].attributes.getNamedItem('width').nodeValue);
-          pos = pos / 40;
-          comment.pos = pos;
-          b = i + 1;
-          $('span.comhead:eq(' + b + ') > a').each(function() {
-            var text;
-            text = $(this).text();
-            if (text.indexOf('link') === -1) {
-              return comment.postedBy = text;
-            } else {
-              return comment.itemId = $(this).attr('href').split('=')[1];
-            }
-          });
-          tmp = $('span.comhead:eq(' + b + ')').text();
-          comment.postedAgo = tmp.split(comment.postedBy + ' ')[1].split('ago')[0] + 'ago';
-          $('span.comment:eq(' + i + ') > font').each(function() {
-            return comment.text = $(this).text();
-          });
-          t = '_.last(comments)';
-          if (pos > 0) {
-            for (n = 1; 1 <= pos ? n <= pos : n >= pos; 1 <= pos ? n++ : n--) {
-              if (n === pos) {
-                t = t + '.replies';
+      return request({
+        uri: url
+      }, function(err, res, body) {
+        return jsdom.env(body, ['jquery-1.5.min.js'], function(err, win) {
+          var $, comments, i;
+          $ = win.$;
+          comments = [];
+          i = 0;
+          $('td.default').each(function() {
+            var b, comment, n, pos, t, tmp;
+            comment = {};
+            comment.replies = [];
+            pos = parseInt($(this).parent().get(0).childNodes[0].childNodes[0].attributes.getNamedItem('width').nodeValue);
+            pos = pos / 40;
+            comment.pos = pos;
+            b = i + 1;
+            $('span.comhead:eq(' + b + ') > a').each(function() {
+              var text;
+              text = $(this).text();
+              if (text.indexOf('link') === -1) {
+                return comment.postedBy = text;
               } else {
-                t = '_.last(' + t + '.replies)';
+                return comment.itemId = $(this).attr('href').split('=')[1];
               }
+            });
+            tmp = $('span.comhead:eq(' + b + ')').text();
+            comment.postedAgo = tmp.split(comment.postedBy + ' ')[1].split('ago')[0] + 'ago';
+            $('span.comment:eq(' + i + ') > *').each(function() {
+              return comment.text = $(this).text();
+            });
+            t = '_.last(comments)';
+            if (pos > 0) {
+              for (n = 1; 1 <= pos ? n <= pos : n >= pos; 1 <= pos ? n++ : n--) {
+                if (n === pos) {
+                  t = t + '.replies';
+                } else {
+                  t = '_.last(' + t + '.replies)';
+                }
+              }
+              eval(t + '.push(comment)');
+              self.emit('reply', comment);
+            } else {
+              comments.push(comment);
+              self.emit('comment', comment);
             }
-            eval(t + '.push(comment)');
-            self.emit('reply', comment);
-          } else {
-            comments[i] = comment;
-            self.emit('comment', comment);
+            return i++;
+          });
+          if (callback != null) {
+            return callback(comments);
           }
-          return i++;
         });
-        if (callback != null) {
-          return callback(comments);
-        }
       });
     };
     return Hackernews;
